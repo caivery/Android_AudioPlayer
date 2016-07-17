@@ -97,7 +97,7 @@ public class PlayListAdapter extends BaseAdapter {
 		basePlayer.setPlayEvent(new PlayEvent() {
 
 			@Override
-			public void pauseed() {
+			public void stoped() {
 
 			}
 

@@ -161,7 +161,7 @@ public class BasePlayer {
 				if (isStop) {
 					mAudioTrack.stop();
 					if (playEvent != null)
-						playEvent.pauseed();
+						playEvent.stoped();
 					return;
 				}
 				try {
@@ -216,7 +216,7 @@ public class BasePlayer {
 	public interface PlayEvent {
 		public void finished();
 
-		public void pauseed();
+		public void stoped();
 
 		public void error();
 	}
