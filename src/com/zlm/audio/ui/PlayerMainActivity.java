@@ -14,10 +14,9 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.zlm.audio.AudioFileReader;
-import com.zlm.audio.model.AudioInfo;
-import com.zlm.audio.util.AudioUtil;
-import com.zlm.audio.util.MediaUtil;
+import com.tulskiy.musique.audio.AudioFileReader;
+import com.tulskiy.musique.model.TrackData;
+import com.tulskiy.musique.system.TrackIO;
 import com.zlm.player.ui.R;
 
 public class PlayerMainActivity extends Activity {
@@ -36,16 +35,16 @@ public class PlayerMainActivity extends Activity {
 
 		@Override
 		public void handleMessage(Message msg) {
-			AudioInfo audioInfo = (AudioInfo) msg.obj;
-			if (audioInfo != null) {
-
-				seekBar.setMax((int) audioInfo.getDuration());
-				seekBar.setProgress((int) audioInfo.getPlayedProgress());
-
-				progressTextView.setText(MediaUtil.formatTime((int) audioInfo
-						.getPlayedProgress()));
-				durationTextView.setText(audioInfo.getDurationStr());
-			}
+			// TrackData  track = (TrackData ) msg.obj;
+			// if (track != null) {
+			//
+			// seekBar.setMax((int) track.getTrackData Data().getDuration());
+			// seekBar.setProgress((int) audioInfo.getPlayedProgress());
+			//
+			// progressTextView.setText(MediaUtil.formatTime((int) audioInfo
+			// .getPlayedProgress()));
+			// durationTextView.setText(audioInfo.getDurationStr());
+			// }
 		}
 
 	};
@@ -75,11 +74,11 @@ public class PlayerMainActivity extends Activity {
 
 	private void loadData() {
 
-		new AsyncTask<String, Integer, List<AudioInfo>>() {
+		new AsyncTask<String, Integer, List<TrackData >>() {
 
 			@Override
-			protected List<AudioInfo> doInBackground(String... arg0) {
-				List<AudioInfo> datas = new ArrayList<AudioInfo>();
+			protected List<TrackData > doInBackground(String... arg0) {
+				List<TrackData > datas = new ArrayList<TrackData >();
 				File audioFile = new File(
 						Environment.getExternalStorageDirectory()
 								+ "/haplayer/audio/");
@@ -87,8 +86,8 @@ public class PlayerMainActivity extends Activity {
 				for (int i = 0; i < files.length; i++) {
 					File f = files[i];
 
-					AudioFileReader audioFileReader = AudioUtil
-							.getAudioFileReaderByFilePath(f.getPath());
+					AudioFileReader audioFileReader = TrackIO
+							.getAudioFileReader(f.getName());
 					if (audioFileReader != null)
 						datas.add(audioFileReader.read(f));
 
@@ -98,7 +97,7 @@ public class PlayerMainActivity extends Activity {
 			}
 
 			@Override
-			protected void onPostExecute(List<AudioInfo> result) {
+			protected void onPostExecute(List<TrackData > result) {
 				adapter = new PlayListAdapter(getApplicationContext(), result,
 						mHandler);
 

@@ -1,14 +1,12 @@
 package com.zlm.audio.player;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioTrack;
 
-import com.zlm.audio.Buffer;
-import com.zlm.audio.Decoder;
-import com.zlm.audio.model.AudioInfo;
-import com.zlm.audio.util.AudioMathUtil;
-import com.zlm.audio.util.AudioUtil;
+import com.tulskiy.musique.audio.Decoder;
+import com.tulskiy.musique.model.TrackData;
+import com.tulskiy.musique.system.Codecs;
+import com.tulskiy.musique.util.AudioMath;
+import com.tulskiy.musique.util.Buffer;
 
 /**
  * 播放器
@@ -17,7 +15,7 @@ import com.zlm.audio.util.AudioUtil;
  * 
  */
 public class BasePlayer {
-	private AudioInfo audioInfo;
+	private TrackData trackData;
 	private Decoder decoder;
 	private AudioTrack mAudioTrack;
 	private Thread playThread;
@@ -33,40 +31,31 @@ public class BasePlayer {
 
 	}
 
-	public void open(AudioInfo audioInfo) {
-		if (audioInfo == null)
+	public void open(TrackData trackData) {
+		if (trackData == null)
 			return;
-		this.audioInfo = audioInfo;
-
-		decoder = AudioUtil.getAudioDecoderByFileExt(audioInfo.getFileExt());
+		this.trackData = trackData;
+		decoder = Codecs.getDecoder(trackData);
 		if (decoder == null)
 			return;
-
-		boolean flag = decoder.open(audioInfo);
+		boolean flag = decoder.open(trackData);
 		if (!flag)
 			return;
-		//
-		int mFrequency = audioInfo.getSampleRate();
-		int mChannel = AudioFormat.CHANNEL_CONFIGURATION_STEREO;
-		int mSampBit = AudioFormat.ENCODING_PCM_16BIT;
-		// 获得构建对象的最小缓冲区大小
-		int minBufSize = AudioTrack.getMinBufferSize(mFrequency, mChannel,
-				mSampBit);
-		mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, mFrequency,
-				mChannel, mSampBit, minBufSize * 2, AudioTrack.MODE_STREAM);
 
-		long samples = audioInfo.getTotalSamples();
-		totalFrameBytes = AudioMathUtil.samplesToBytes(samples,
-				audioInfo.getFrameSize());
+		mAudioTrack = decoder.getAudioTrack();
 
-		if (audioInfo.getPlayedProgress() >= 0) {
-			long seekSample = AudioMathUtil.millisToSamples(
-					audioInfo.getPlayedProgress(), audioInfo.getSampleRate());
+		long samples = trackData.getTotalSamples();
+		totalFrameBytes = AudioMath.samplesToBytes(samples,
+				trackData.getFrameSize());
+
+		if (trackData.getStartPosition() >= 0) {
+			long seekSample = AudioMath.millisToSamples(
+					trackData.getStartPosition(), trackData.getSampleRate());
 
 			decoder.seekSample(seekSample);
 
-			currentByte = AudioMathUtil.samplesToBytes(seekSample,
-					audioInfo.getFrameSize());
+			currentByte = AudioMath.samplesToBytes(seekSample,
+					trackData.getFrameSize());
 		} else {
 			currentByte = 0;
 		}
@@ -83,7 +72,7 @@ public class BasePlayer {
 	}
 
 	public void play() {
-		if (audioInfo == null) {
+		if (trackData == null) {
 			// 不支持该格式音频
 			if (playEvent != null)
 				playEvent.error();
@@ -117,7 +106,7 @@ public class BasePlayer {
 		if (playThread != null) {
 			playThread = null;
 		}
-		open(audioInfo);
+		open(trackData);
 		play();
 	}
 
@@ -128,8 +117,8 @@ public class BasePlayer {
 	 *            时间进度
 	 */
 	public void seekTo(long millis) {
-		long seekBytes = AudioMathUtil.millisToSamples(millis,
-				audioInfo.getSampleRate());
+		long seekBytes = AudioMath.millisToSamples(millis,
+				trackData.getSampleRate());
 		seek(seekBytes);
 	}
 
@@ -198,9 +187,9 @@ public class BasePlayer {
 	};
 
 	public double getCurrentMillis() {
-		if (audioInfo != null) {
-			return AudioMathUtil.bytesToMillis(currentByte,
-					audioInfo.getFrameSize(), audioInfo.getSampleRate());
+		if (trackData != null) {
+			return AudioMath.bytesToMillis(currentByte,
+					trackData.getFrameSize(), trackData.getSampleRate());
 		}
 		return 0.0D;
 	}

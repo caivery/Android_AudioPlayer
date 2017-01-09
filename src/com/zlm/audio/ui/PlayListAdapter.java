@@ -14,7 +14,7 @@ import android.widget.BaseAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.zlm.audio.model.AudioInfo;
+import com.tulskiy.musique.model.TrackData;
 import com.zlm.audio.player.BasePlayer;
 import com.zlm.audio.player.BasePlayer.PlayEvent;
 import com.zlm.player.ui.R;
@@ -22,7 +22,7 @@ import com.zlm.player.ui.R;
 public class PlayListAdapter extends BaseAdapter {
 
 	private Context context;
-	private List<AudioInfo> datas;
+	private List<TrackData> datas;
 	private Handler mHandler;
 	private LayoutInflater mInflater;
 
@@ -30,9 +30,9 @@ public class PlayListAdapter extends BaseAdapter {
 
 	private Thread playThread;
 
-	private AudioInfo audioInfo;
+	private TrackData trackData;
 
-	public PlayListAdapter(Context context, List<AudioInfo> datas,
+	public PlayListAdapter(Context context, List<TrackData> datas,
 			Handler mHandler) {
 		this.context = context;
 		this.datas = datas;
@@ -66,34 +66,34 @@ public class PlayListAdapter extends BaseAdapter {
 		} else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
-		final AudioInfo audioInfo = datas.get(position);
+		final TrackData trackData = datas.get(position);
 		viewHolder.getFileTextView().setTextColor(Color.BLACK);
-		viewHolder.getFileTextView().setText(audioInfo.getFilePath());
+		viewHolder.getFileTextView().setText(trackData.getFileName());
 		viewHolder.getItemBG().setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
-				playMusic(audioInfo);
+				playMusic(trackData);
 			}
 		});
 		return convertView;
 	}
 
-	protected void playMusic(AudioInfo audioInfo) {
-		this.audioInfo = audioInfo;
+	protected void playMusic(TrackData trackData) {
+		this.trackData = trackData;
 		if (playThread != null)
 			playThread = null;
 		if (basePlayer != null) {
 			basePlayer.stop();
 			basePlayer = null;
 		} else {
-			playMusicInfo(audioInfo);
+			playMusicInfo(trackData);
 		}
 	}
 
-	private void playMusicInfo(AudioInfo audioInfo) {
+	private void playMusicInfo(TrackData trackData) {
 		basePlayer = new BasePlayer();
-		basePlayer.open(audioInfo);
+		basePlayer.open(trackData);
 		basePlayer.setPlayEvent(new PlayEvent() {
 
 			@Override
@@ -124,9 +124,9 @@ public class PlayListAdapter extends BaseAdapter {
 			while (true) {
 				if (basePlayer != null && basePlayer.isPlaying()) {
 					Message msg = new Message();
-					audioInfo.setPlayedProgress((int) basePlayer
+					trackData.setStartPosition((int) basePlayer
 							.getCurrentMillis());
-					msg.obj = audioInfo;
+					msg.obj = trackData;
 					mHandler.sendMessage(msg);
 					try {
 						Thread.sleep(100);
